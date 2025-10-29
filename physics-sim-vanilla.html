@@ -1,0 +1,750 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Physics Simulation</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      overflow: hidden;
+      background: #0a0a0a;
+    }
+
+    #canvas {
+      display: block;
+      width: 100vw;
+      height: 100vh;
+    }
+
+    .controls-toggle {
+      position: absolute;
+      top: 1rem;
+      right: 1rem;
+      z-index: 10;
+      padding: 0.5rem;
+      background: #1f2937;
+      border: none;
+      border-radius: 0.5rem;
+      color: white;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .controls-toggle:hover {
+      background: #374151;
+    }
+
+    .controls-toggle svg {
+      display: block;
+      width: 20px;
+      height: 20px;
+    }
+
+    .controls-panel {
+      position: absolute;
+      top: 4rem;
+      right: 1rem;
+      z-index: 10;
+      background: rgba(17, 24, 39, 0.95);
+      color: white;
+      padding: 1rem;
+      border-radius: 0.5rem;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+      width: 16rem;
+    }
+
+    .controls-panel.hidden {
+      display: none;
+    }
+
+    .controls-panel h3 {
+      font-size: 1.125rem;
+      margin-bottom: 0.75rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 1px solid #374151;
+    }
+
+    .control-group {
+      margin-bottom: 0.75rem;
+    }
+
+    .control-group label {
+      display: block;
+      font-size: 0.875rem;
+      margin-bottom: 0.25rem;
+    }
+
+    .control-group input[type="range"] {
+      width: 100%;
+      margin-top: 0.25rem;
+    }
+
+    .button-group {
+      display: flex;
+      gap: 0.5rem;
+      margin-top: 1rem;
+      padding-top: 0.75rem;
+      border-top: 1px solid #374151;
+    }
+
+    .button-group button {
+      flex: 1;
+      padding: 0.5rem;
+      border: none;
+      border-radius: 0.25rem;
+      color: white;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      font-size: 0.875rem;
+      transition: background 0.2s;
+    }
+
+    .button-group button svg {
+      width: 16px;
+      height: 16px;
+    }
+
+    .btn-play {
+      background: #2563eb;
+    }
+
+    .btn-play:hover {
+      background: #1d4ed8;
+    }
+
+    .btn-reset {
+      background: #16a34a;
+    }
+
+    .btn-reset:hover {
+      background: #15803d;
+    }
+
+    .legend {
+      position: absolute;
+      bottom: 1rem;
+      left: 1rem;
+      z-index: 10;
+      background: rgba(17, 24, 39, 0.95);
+      color: white;
+      padding: 0.75rem;
+      border-radius: 0.5rem;
+      font-size: 0.875rem;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 0.25rem;
+    }
+
+    .legend-item:last-child {
+      margin-bottom: 0;
+    }
+
+    .legend-color {
+      width: 1rem;
+      height: 1rem;
+      border-radius: 50%;
+    }
+
+    .legend-color.attract {
+      background: #ef4444;
+    }
+
+    .legend-color.repel {
+      background: #3b82f6;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="canvas"></canvas>
+
+  <button class="controls-toggle" id="toggleControls">
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-settings"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M10.325 4.317c.426 -1.756 2.924 -1.756 3.35 0a1.724 1.724 0 0 0 2.573 1.066c1.543 -.94 3.31 .826 2.37 2.37a1.724 1.724 0 0 0 1.065 2.572c1.756 .426 1.756 2.924 0 3.35a1.724 1.724 0 0 0 -1.066 2.573c.94 1.543 -.826 3.31 -2.37 2.37a1.724 1.724 0 0 0 -2.572 1.065c-.426 1.756 -2.924 1.756 -3.35 0a1.724 1.724 0 0 0 -2.573 -1.066c-1.543 .94 -3.31 -.826 -2.37 -2.37a1.724 1.724 0 0 0 -1.065 -2.572c-1.756 -.426 -1.756 -2.924 0 -3.35a1.724 1.724 0 0 0 1.066 -2.573c-.94 -1.543 .826 -3.31 2.37 -2.37c1 .608 2.296 .07 2.572 -1.065z" /><path d="M9 12a3 3 0 1 0 6 0a3 3 0 0 0 -6 0" /></svg>
+  </button>
+
+  <div class="controls-panel" id="controlsPanel">
+    <h3>Simulation Controls</h3>
+
+    <div class="control-group">
+      <label>
+        Sphere Count: <span id="sphereCountValue">10</span>
+      </label>
+      <input type="range" id="sphereCount" min="2" max="30" step="2" value="10">
+    </div>
+
+    <div class="control-group">
+      <label>
+        Force Strength: <span id="forceStrengthValue">50</span>
+      </label>
+      <input type="range" id="forceStrength" min="10" max="200" step="5" value="50">
+    </div>
+
+    <div class="control-group">
+      <label>
+        Max Distance: <span id="maxDistanceValue">15.0</span>
+      </label>
+      <input type="range" id="maxDistance" min="5" max="30" step="0.5" value="15">
+    </div>
+
+    <div class="control-group">
+      <label>
+        Min Flip Time: <span id="minFlipTimeValue">2.0</span>s
+      </label>
+      <input type="range" id="minFlipTime" min="500" max="5000" step="100" value="2000">
+    </div>
+
+    <div class="control-group">
+      <label>
+        Max Flip Time: <span id="maxFlipTimeValue">8.0</span>s
+      </label>
+      <input type="range" id="maxFlipTime" min="2000" max="15000" step="500" value="8000">
+    </div>
+
+    <div class="button-group">
+      <button class="btn-play" id="playPause">
+        <svg id="pauseIcon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="6" y="4" width="4" height="16"></rect>
+          <rect x="14" y="4" width="4" height="16"></rect>
+        </svg>
+        <svg id="playIcon" class="hidden" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polygon points="5 3 19 12 5 21 5 3"></polygon>
+        </svg>
+        <span id="playPauseText">Play</span>
+      </button>
+      <button class="btn-reset" id="reset">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"></path>
+        </svg>
+        Reset
+      </button>
+    </div>
+  </div>
+
+  <div class="legend">
+    <div class="legend-item">
+      <div class="legend-color attract"></div>
+      <span>Attract Mode</span>
+    </div>
+    <div class="legend-item">
+      <div class="legend-color repel"></div>
+      <span>Repel Mode</span>
+    </div>
+  </div>
+
+  <script type="module">
+    import { SuperSonic } from '../dist/supersonic.js';
+    import { getSynthDef, getSynthDefHex, listSynthDefs } from '../dist/etc/synthdefs.js';
+    const sonic = new SuperSonic();
+    let superSonicInitted = false;
+
+
+    // Configuration
+    const config = {
+      sphereCount: 10,
+      forceStrength: 50,
+      maxDistance: 15,
+      minFlipTime: 2000,
+      maxFlipTime: 8000,
+      sphereRadius: 0.5,
+      cubeSize: 20
+    };
+
+    // Load libraries
+    async function loadLibraries() {
+      if (!window.THREE) {
+        await new Promise((resolve, reject) => {
+          const script = document.createElement('script');
+          script.src = 'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js';
+          script.onload = resolve;
+          script.onerror = reject;
+          document.head.appendChild(script);
+        });
+      }
+
+      if (!window.CANNON) {
+        await new Promise((resolve, reject) => {
+          const script = document.createElement('script');
+          script.src = 'https://cdnjs.cloudflare.com/ajax/libs/cannon.js/0.6.2/cannon.min.js';
+          script.onload = resolve;
+          script.onerror = reject;
+          document.head.appendChild(script);
+        });
+      }
+
+      if (!window.THREE.OrbitControls) {
+        await new Promise((resolve, reject) => {
+          const script = document.createElement('script');
+          script.src = 'https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js';
+          script.onload = resolve;
+          script.onerror = reject;
+          document.head.appendChild(script);
+        });
+      }
+    }
+
+    function loadAllSynthDefs(sonic) {
+      try {
+        const synthNames = ['sonic-pi-beep', 'sonic-pi-tb303', 'sonic-pi-chiplead', 'sonic-pi-dsaw', 'sonic-pi-dpulse', 'sonic-pi-bnoise', 'sonic-pi-prophet', 'sonic-pi-fm', 'sonic-pi-tri', 'sonic-pi-fx_reverb'];
+        let loadedCount = 0;
+
+        synthNames.forEach(synthName => {
+          const synthdefHex = getSynthDefHex(synthName);
+          if (synthdefHex) {
+            // Convert hex string to Uint8Array blob
+            const hexBytes = new Uint8Array(synthdefHex.length / 2);
+            for (let i = 0; i < synthdefHex.length; i += 2) {
+              hexBytes[i / 2] = parseInt(synthdefHex.substr(i, 2), 16);
+            }
+            // Use new simple send API
+            sonic.send('/d_recv', hexBytes);
+            loadedCount++;
+            console.log('[App] Loaded synthdef:', synthName);
+          } else {
+            console.warn('[App] Synthdef not found:', synthName);
+          }
+        });
+
+        console.log(`[App] Loaded ${loadedCount} synthdefs`);
+      } catch (error) {
+        console.error('[App] Load all error:', error);
+        showError('Failed to load synthdefs: ' + error.message);
+      }
+    }
+
+    // Sphere class
+    class Sphere {
+      constructor(world, scene, radius, isAttract, config) {
+        this.radius = radius;
+        this.isAttract = isAttract;
+        this.config = config;
+
+        const range = config.cubeSize / 2 - radius * 2;
+        const randomPos = () => (Math.random() - 0.5) * 2 * range;
+        const randomVel = () => (Math.random() - 0.5) * 4;
+
+        const shape = new CANNON.Sphere(radius);
+        this.body = new CANNON.Body({
+          mass: 1,
+          shape: shape,
+          position: new CANNON.Vec3(randomPos(), randomPos(), randomPos()),
+          velocity: new CANNON.Vec3(randomVel(), randomVel(), randomVel()),
+          linearDamping: 0.01
+        });
+
+        this.body.addEventListener('collide', (event) => {
+          this.onCollision(event);
+        });
+
+        world.addBody(this.body);
+
+        const geometry = new THREE.SphereGeometry(radius, 32, 32);
+        const material = new THREE.MeshStandardMaterial({
+          color: isAttract ? 0xff4444 : 0x4444ff,
+          metalness: 0.3,
+          roughness: 0.4,
+          emissive: isAttract ? 0x440000 : 0x000044,
+          emissiveIntensity: 0.3
+        });
+        this.mesh = new THREE.Mesh(geometry, material);
+        this.mesh.castShadow = true;
+        scene.add(this.mesh);
+
+        this.nextFlipTime = this.randomFlipDelay();
+        this.flipTimer = 0;
+      }
+
+      randomFlipDelay() {
+        const min = this.config.minFlipTime;
+        const max = this.config.maxFlipTime;
+        return min + Math.random() * (max - min);
+      }
+
+      updateFlipTimer(deltaTime) {
+        this.flipTimer += deltaTime * 1000; // Convert to ms
+        if (this.flipTimer >= this.nextFlipTime) {
+          this.flip();
+          this.flipTimer = 0;
+          this.nextFlipTime = this.randomFlipDelay();
+        }
+      }
+
+      flip() {
+        this.isAttract = !this.isAttract;
+        this.mesh.material.color.setHex(this.isAttract ? 0xff4444 : 0x4444ff);
+        this.mesh.material.emissive.setHex(this.isAttract ? 0x440000 : 0x000044);
+      }
+
+      onCollision(event) {
+        const impactVelocity = event.contact.getImpactVelocityAlongNormal();
+        const collisionPoint = event.contact.bi.position;
+        const baseNote = this.isAttract ? 60 : 48; // Attract = higher, Repel = lower
+        let note;
+        const amp = Math.min(0.2 + (impactVelocity * 0.06), 0.3);
+        const pan = (this.body.position.x / (this.config.cubeSize / 2)); // -1 to 1
+        const hitWall = event.body.mass === 0;
+        let synth;
+        let release;
+
+        this.flashCollision(impactVelocity);
+
+        if (hitWall) {
+          synth = 'sonic-pi-tri'
+          note = (baseNote - 24) + Math.min(Math.floor(impactVelocity * 2), 24);
+          release = 0.5;
+        } else {
+          synth = this.isAttract ? 'sonic-pi-beep' : 'sonic-pi-dsaw';
+          note = baseNote + Math.min(Math.floor(impactVelocity * 2), 24);
+          release = 0.2;
+        }
+        if (superSonicInitted) {
+          sonic.send('/s_new', synth, -1, 0, 0,
+                     'note', note,
+                     'amp', amp,
+                     'pan', pan,
+                     'attack', 0.01,
+                     'release', release);
+        }
+        console.log('Collision!', {
+          impactVelocity: Math.abs(impactVelocity),
+          position: collisionPoint,
+          sphere: this,
+          target: event.body
+        });
+      }
+
+      flashCollision(intensity) {
+        // Store original colors if not already stored
+        if (!this.originalColor) {
+          this.originalColor = this.mesh.material.color.clone();
+          this.originalEmissive = this.mesh.material.emissive.clone();
+        }
+
+        // Flash to white/bright based on intensity
+        const flashAmount = Math.min(intensity * 0.15, 0.8);
+        this.mesh.material.color.lerp(new THREE.Color(0xffffff), flashAmount);
+        this.mesh.material.emissiveIntensity = Math.min(0.3 + intensity * 0.1, 1.0);
+
+        // Fade back to original over time
+        if (this.flashTimeout) clearTimeout(this.flashTimeout);
+
+        const fadeSteps = 10;
+        let currentStep = 0;
+
+        const fade = () => {
+          currentStep++;
+          const t = currentStep / fadeSteps;
+
+          this.mesh.material.color.lerp(this.originalColor, 0.3);
+          this.mesh.material.emissiveIntensity = THREE.MathUtils.lerp(
+            this.mesh.material.emissiveIntensity,
+            this.isAttract ? 0.3 : 0.3,
+            0.3
+          );
+
+          if (currentStep < fadeSteps) {
+            this.flashTimeout = setTimeout(fade, 50);
+          }
+        };
+
+        this.flashTimeout = setTimeout(fade, 50);
+      }
+
+      update() {
+        this.mesh.position.copy(this.body.position);
+        this.mesh.quaternion.copy(this.body.quaternion);
+      }
+
+      cleanup(world, scene) {
+        world.removeBody(this.body);
+        scene.remove(this.mesh);
+      }
+    }
+
+    // Simulation class
+    class Simulation {
+      constructor(canvas, config) {
+        this.canvas = canvas;
+        this.config = config;
+        this.isPlaying = false;
+        this.spheres = [];
+      }
+
+      async init() {
+        await loadLibraries();
+
+        const THREE = window.THREE;
+        const CANNON = window.CANNON;
+
+        // Scene setup
+        this.scene = new THREE.Scene();
+        this.scene.background = new THREE.Color(0x0a0a0a);
+
+        this.camera = new THREE.PerspectiveCamera(
+          75,
+          this.canvas.clientWidth / this.canvas.clientHeight,
+          0.1,
+          1000
+        );
+        this.camera.position.set(25, 25, 25);
+        this.camera.lookAt(0, 0, 0);
+
+        this.renderer = new THREE.WebGLRenderer({
+          canvas: this.canvas,
+          antialias: true
+        });
+        this.renderer.setSize(this.canvas.clientWidth, this.canvas.clientHeight);
+        this.renderer.shadowMap.enabled = true;
+        this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+        // Orbit controls
+        this.controls = new THREE.OrbitControls(this.camera, this.renderer.domElement);
+        this.controls.enableDamping = true;
+        this.controls.dampingFactor = 0.05;
+
+        // Lighting
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+        this.scene.add(ambientLight);
+
+        const directionalLight1 = new THREE.DirectionalLight(0xffffff, 0.8);
+        directionalLight1.position.set(10, 10, 10);
+        directionalLight1.castShadow = true;
+        this.scene.add(directionalLight1);
+
+        const directionalLight2 = new THREE.DirectionalLight(0x4488ff, 0.3);
+        directionalLight2.position.set(-10, -10, -5);
+        this.scene.add(directionalLight2);
+
+        // Physics world
+        this.world = new CANNON.World({
+          gravity: new CANNON.Vec3(0, 0, 0)
+        });
+        this.world.defaultContactMaterial.restitution = 0.8;
+
+        // Glass-like cube container
+        const cubeSize = this.config.cubeSize;
+        const cubeGeometry = new THREE.BoxGeometry(cubeSize, cubeSize, cubeSize);
+        const cubeMaterial = new THREE.MeshPhysicalMaterial({
+          color: 0x88ccff,
+          transparent: true,
+          opacity: 0.1,
+          metalness: 0.1,
+          roughness: 0.1,
+          transmission: 0.9,
+          thickness: 0.5,
+          envMapIntensity: 1,
+          side: THREE.BackSide
+        });
+        const cubeMesh = new THREE.Mesh(cubeGeometry, cubeMaterial);
+        this.scene.add(cubeMesh);
+
+        // Cube edges
+        const edgesGeometry = new THREE.EdgesGeometry(cubeGeometry);
+        const edgesMaterial = new THREE.LineBasicMaterial({
+          color: 0x4488ff,
+          transparent: true,
+          opacity: 0.3
+        });
+        const cubeEdges = new THREE.LineSegments(edgesGeometry, edgesMaterial);
+        this.scene.add(cubeEdges);
+
+        // Create cube walls for physics
+        const halfExtents = cubeSize / 2;
+        const wallThickness = 0.1;
+        const walls = [
+          { pos: [0, halfExtents, 0], rot: [0, 0, 0] },
+          { pos: [0, -halfExtents, 0], rot: [0, 0, 0] },
+          { pos: [halfExtents, 0, 0], rot: [0, 0, Math.PI / 2] },
+          { pos: [-halfExtents, 0, 0], rot: [0, 0, Math.PI / 2] },
+          { pos: [0, 0, halfExtents], rot: [Math.PI / 2, 0, 0] },
+          { pos: [0, 0, -halfExtents], rot: [Math.PI / 2, 0, 0] }
+        ];
+
+        const wallShape = new CANNON.Box(new CANNON.Vec3(cubeSize / 2, wallThickness, cubeSize / 2));
+        walls.forEach(wall => {
+          const wallBody = new CANNON.Body({
+            mass: 0,
+            shape: wallShape,
+            position: new CANNON.Vec3(wall.pos[0], wall.pos[1], wall.pos[2])
+          });
+          wallBody.quaternion.setFromEuler(wall.rot[0], wall.rot[1], wall.rot[2]);
+          this.world.addBody(wallBody);
+        });
+
+        // Create spheres
+        this.createSpheres();
+
+        // Handle resize
+        this.handleResize = () => {
+          const width = this.canvas.clientWidth;
+          const height = this.canvas.clientHeight;
+          this.camera.aspect = width / height;
+          this.camera.updateProjectionMatrix();
+          this.renderer.setSize(width, height);
+        };
+        window.addEventListener('resize', this.handleResize);
+
+        // Start animation
+        this.animate();
+      }
+
+      createSpheres() {
+        this.spheres.forEach(s => s.cleanup(this.world, this.scene));
+        this.spheres = [];
+
+        for (let i = 0; i < this.config.sphereCount; i++) {
+          const isAttract = i < this.config.sphereCount / 2;
+          this.spheres.push(new Sphere(this.world, this.scene, this.config.sphereRadius, isAttract, this.config));
+        }
+      }
+
+      applyForces() {
+        for (let i = 0; i < this.spheres.length; i++) {
+          for (let j = i + 1; j < this.spheres.length; j++) {
+            const s1 = this.spheres[i];
+            const s2 = this.spheres[j];
+
+            const diff = s2.body.position.vsub(s1.body.position);
+            const distance = diff.length();
+
+            if (distance > this.config.maxDistance) continue;
+            if (distance < 0.01) continue;
+
+            const forceMagnitude = this.config.forceStrength / (distance * distance);
+            const forceDir = diff.unit();
+
+            const s1Force = s1.isAttract ? 1 : -1;
+            const s2Force = s2.isAttract ? 1 : -1;
+            const combinedForce = s1Force * s2Force;
+
+            const force = forceDir.scale(forceMagnitude * combinedForce);
+
+            s1.body.applyForce(force, s1.body.position);
+            s2.body.applyForce(force.negate(), s2.body.position);
+          }
+        }
+      }
+
+      animate() {
+        if (!this.lastTime) this.lastTime = performance.now();
+
+        const currentTime = performance.now();
+        const deltaTime = (currentTime - this.lastTime) / 1000;
+        this.lastTime = currentTime;
+
+        if (this.isPlaying) {
+          this.applyForces();
+          this.world.step(1 / 60, deltaTime, 3);
+          this.spheres.forEach(s => {
+            s.update();
+            s.updateFlipTimer(deltaTime);
+          });
+        }
+
+        this.controls.update();
+        this.renderer.render(this.scene, this.camera);
+        requestAnimationFrame(() => this.animate());
+      }
+
+      togglePlay() {
+        this.isPlaying = !this.isPlaying;
+      }
+
+      reset() {
+        this.createSpheres();
+      }
+
+      cleanup() {
+        window.removeEventListener('resize', this.handleResize);
+        this.spheres.forEach(s => s.cleanup(this.world, this.scene));
+        this.renderer.dispose();
+      }
+    }
+
+    // UI Controls
+    class UIControls {
+      constructor(config, simulation) {
+        this.config = config;
+        this.simulation = simulation;
+        this.setupEventListeners();
+      }
+
+      setupEventListeners() {
+        // Toggle controls panel
+        document.getElementById('toggleControls').addEventListener('click', () => {
+          document.getElementById('controlsPanel').classList.toggle('hidden');
+        });
+
+        // Sphere count
+        document.getElementById('sphereCount').addEventListener('input', (e) => {
+          this.config.sphereCount = parseInt(e.target.value);
+          document.getElementById('sphereCountValue').textContent = e.target.value;
+        });
+
+        // Force strength
+        document.getElementById('forceStrength').addEventListener('input', (e) => {
+          this.config.forceStrength = parseFloat(e.target.value);
+          document.getElementById('forceStrengthValue').textContent = e.target.value;
+        });
+
+        // Max distance
+        document.getElementById('maxDistance').addEventListener('input', (e) => {
+          this.config.maxDistance = parseFloat(e.target.value);
+          document.getElementById('maxDistanceValue').textContent = parseFloat(e.target.value).toFixed(1);
+        });
+
+        // Min flip time
+        document.getElementById('minFlipTime').addEventListener('input', (e) => {
+          this.config.minFlipTime = parseInt(e.target.value);
+          document.getElementById('minFlipTimeValue').textContent = (parseInt(e.target.value) / 1000).toFixed(1);
+        });
+
+        // Max flip time
+        document.getElementById('maxFlipTime').addEventListener('input', (e) => {
+          this.config.maxFlipTime = parseInt(e.target.value);
+          document.getElementById('maxFlipTimeValue').textContent = (parseInt(e.target.value) / 1000).toFixed(1);
+        });
+
+        // Play/Pause
+        document.getElementById('playPause').addEventListener('click', async () => {
+          if (!superSonicInitted) {
+            await sonic.init();
+            loadAllSynthDefs(sonic);
+          sonic.send('/s_new', 'sonic-pi-fx_reverb', -1, 1, 0, 'out_bus', 0, 'room', 1, 'amp', 0.4);
+            superSonicInitted = true;
+          }
+          this.simulation.togglePlay();
+          const isPlaying = this.simulation.isPlaying;
+          document.getElementById('playPauseText').textContent = isPlaying ? 'Pause' : 'Play';
+          document.getElementById('pauseIcon').classList.toggle('hidden', !isPlaying);
+          document.getElementById('playIcon').classList.toggle('hidden', isPlaying);
+        });
+
+        // Reset
+        document.getElementById('reset').addEventListener('click', () => {
+          this.simulation.reset();
+        });
+      }
+    }
+
+    // Initialize
+    const canvas = document.getElementById('canvas');
+    const simulation = new Simulation(canvas, config);
+    const uiControls = new UIControls(config, simulation);
+
+    simulation.init();
+  </script>
+</body>
+</html>
