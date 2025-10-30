@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SuperSonic Mobile Test</title>
+</head>
+<body>
+  <button id="test" style="font-size: 24px; padding: 20px;">
+    Test Audio
+  </button>
+  <pre id="log" style="font-size: 12px; white-space: pre-wrap;"></pre>
+  
+  <script type="module">
+    const log = document.getElementById('log');
+    function addLog(msg) {
+      log.textContent += new Date().toISOString() + ' ' + msg + '\n';
+      console.log(msg);
+    }
+    
+    document.getElementById('test').addEventListener('click', async () => {
+      try {
+        addLog('Button clicked');
+        addLog('SharedArrayBuffer: ' + (typeof SharedArrayBuffer !== 'undefined'));
+        addLog('crossOriginIsolated: ' + crossOriginIsolated);
+        
+        addLog('Importing SuperSonic...');
+        const { SuperSonic } = await import('./dist/supersonic.js');
+        addLog('SuperSonic imported');
+        
+        addLog('Creating instance...');
+        const sonic = new SuperSonic();
+        addLog('Instance created');
+        
+        addLog('Initializing...');
+        await sonic.init();
+        addLog('Initialized!');
+        
+        addLog('Sending test message...');
+        sonic.send('/notify', 1);
+        addLog('SUCCESS!');
+        
+      } catch (error) {
+        addLog('ERROR: ' + error.message);
+        addLog('Stack: ' + error.stack);
+      }
+    });
+  </script>
+</body>
+</html>
