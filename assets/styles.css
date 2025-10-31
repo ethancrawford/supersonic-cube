@@ -73,6 +73,10 @@ body {
     width: 16rem;
 }
 
+.controls-panel .controls-toggle {
+    display: none;
+}
+
 .hidden {
     display: none;
 }
@@ -175,4 +179,117 @@ body {
 
 .legend-color.repel {
     background: #3b82f6;
+}
+
+/* Mobile-specific adjustments */
+@media (max-width: 768px) {
+  body {
+    overflow: hidden;
+    position: fixed;
+    width: 100%;
+    height: 100%;
+  }
+
+  #canvas {
+    touch-action: none; /* Prevent default touch gestures */
+  }
+
+  .controls-toggle {
+    top: 0.5rem;
+    right: 0.5rem;
+    padding: 0.75rem; /* Bigger tap target */
+    display: flex;
+  }
+
+  .controls-panel {
+    top: 3.5rem;
+    right: 0.5rem;
+    left: 0.5rem;
+    width: auto;
+    max-height: 70vh;
+    overflow-y: auto;
+  }
+
+  .controls-panel .controls-toggle {
+      display: flex;
+  }
+
+  .control-group {
+    margin-bottom: 1rem;
+  }
+
+  .control-group label {
+    font-size: 1rem; /* Larger text for mobile */
+  }
+
+  .control-group input[type="range"] {
+    height: 2rem; /* Bigger slider for easier interaction */
+  }
+
+  .button-group button {
+    width: 6rem;
+    padding: 0.75rem 1rem;
+    font-size: 1rem;
+    min-height: 48px; /* Minimum touch target size */
+  }
+
+  .legend {
+    bottom: 0.5rem;
+    left: 0.5rem;
+    font-size: 0.75rem;
+    padding: 0.5rem;
+  }
+
+  /* Make sure controls don't interfere with canvas */
+  .controls-panel.hidden {
+    pointer-events: none;
+  }
+}
+
+/* Landscape mobile - move controls to side */
+@media (max-width: 768px) and (orientation: landscape) {
+  .controls-panel {
+    max-height: 90vh;
+    max-width: 280px;
+    right: 0.5rem;
+    left: auto;
+  }
+}
+
+/* Very small screens */
+@media (max-width: 480px) {
+  .controls-toggle {
+    top: 0.5rem;
+    right: 0.5rem;
+    padding: 0.5rem; /* Bigger tap target */
+  }
+
+  .controls-panel .controls-toggle {
+      position: absolute;
+  }
+
+  .controls-panel {
+    font-size: 0.875rem;
+  }
+
+  .control-group label {
+    font-size: 0.875rem;
+  }
+
+  .button-group {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .button-group button {
+    width: 6rem;
+  }
+
+  .legend {
+    font-size: 0.7rem;
+  }
+
+  .legend-item {
+    font-size: 0.7rem;
+  }
 }

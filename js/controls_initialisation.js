@@ -13,6 +13,10 @@ class ControlsInitialisation {
       document.getElementById('controlsPanel').classList.toggle('hidden');
     });
 
+    document.getElementById('closeControls').addEventListener('click', () => {
+      document.getElementById('controlsPanel').classList.add('hidden');
+    });
+
     const updateSphereCount = (simulation) => { return debounce(simulation, 300)() };
     // Sphere count
     document.getElementById('sphereCount').addEventListener('input', (e) => {
