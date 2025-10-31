@@ -16,9 +16,8 @@ const SCALES = {
 };
 
 const AUDIO_CONSTANTS = {
-  MIN_AMP: 0.15,
   AMP_MULTIPLIER: 0.05,
-  MAX_AMP: 0.3,
+  MAX_AMP: 0.2,
   WALL_RELEASE: 0.5,
   SPHERE_RELEASE: 0.2,
   WALL_OCTAVE_OFFSET: -24,
@@ -36,7 +35,8 @@ let config = {
   sphereRadius: 0.5,
   cubeSize: 20,
   currentScale: 'Pentatonic Major',
-  rootNote: 60
+  rootNote: 60,
+  ampMultiplier: 0.25
 };
 
 export { SCALES, AUDIO_CONSTANTS, config }
