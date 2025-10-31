@@ -98,11 +98,6 @@ class ControlsInitialisation {
       document.getElementById('pauseIcon').classList.toggle('hidden', !isPlaying);
       document.getElementById('playIcon').classList.toggle('hidden', isPlaying);
     });
-
-    // Reset
-    document.getElementById('reset').addEventListener('click', () => {
-      this.simulation.reset();
-    });
   }
 }
 

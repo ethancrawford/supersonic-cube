@@ -16,11 +16,18 @@ body {
     height: 100vh;
 }
 
-.controls-toggle {
+.button-panel {
     position: absolute;
     top: 1rem;
     right: 1rem;
     z-index: 10;
+}
+
+.controls-toggle {
+    /* position: absolute; */
+    /* top: 1rem; */
+    /* right: 1rem; */
+    /* z-index: 10; */
     padding: 0.5rem;
     background: #1f2937;
     border: none;
@@ -53,7 +60,7 @@ body {
     width: 16rem;
 }
 
-.controls-panel.hidden {
+.hidden {
     display: none;
 }
 
@@ -82,9 +89,6 @@ body {
 .button-group {
     display: flex;
     gap: 0.5rem;
-    margin-top: 1rem;
-    padding-top: 0.75rem;
-    border-top: 1px solid #374151;
 }
 
 .button-group button {
