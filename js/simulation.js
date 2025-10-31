@@ -130,15 +130,19 @@ class Simulation {
     // Create spheres
     this.createSpheres();
 
-    // Handle resize
     this.handleResize = () => {
-      const width = this.canvas.clientWidth;
-      const height = this.canvas.clientHeight;
+      // Use visualViewport if available (better for mobile)
+      const width = window.visualViewport?.width || this.canvas.clientWidth;
+      const height = window.visualViewport?.height || this.canvas.clientHeight;
+
       this.camera.aspect = width / height;
       this.camera.updateProjectionMatrix();
       this.renderer.setSize(width, height);
     };
     window.addEventListener('resize', this.handleResize);
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener('resize', this.handleResize);
+    }
 
     // Start animation
     this.animate();
