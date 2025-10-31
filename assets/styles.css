@@ -16,6 +16,19 @@ body {
     height: 100vh;
 }
 
+#loading {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    background: #0a0a0a;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-family: sans-serif;
+    z-index: 1000;
+}
+
 .button-panel {
     position: absolute;
     top: 1rem;

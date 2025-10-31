@@ -90,7 +90,9 @@ class ControlsInitialisation {
     // Play/Pause
     document.getElementById('playPause').addEventListener('click', async () => {
       if (!this.simulation.audioInterface.initialised) {
+        document.getElementById('loading').classList.remove("hidden");
         await this.simulation.audioInterface.init();
+        document.getElementById('loading').classList.add("hidden");
       }
       this.simulation.togglePlay();
       const isPlaying = this.simulation.isPlaying;
