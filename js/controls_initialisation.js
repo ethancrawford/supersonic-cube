@@ -45,6 +45,12 @@ class ControlsInitialisation {
       document.getElementById('maxFlipTimeValue').textContent = (parseInt(e.target.value) / 1000).toFixed(1);
     });
 
+    // Amp multiplier
+    document.getElementById('ampMultiplier').addEventListener('input', (e) => {
+      this.config.ampMultiplier = parseFloat(e.target.value);
+      document.getElementById('ampMultiplierValue').textContent = (parseFloat(e.target.value)).toFixed(2);
+    });
+
     const rootNoteSlider = document.getElementById('rootNote');
     const rootNoteValue = document.getElementById('rootNoteValue');
     const noteNames = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
@@ -91,11 +97,6 @@ class ControlsInitialisation {
       document.getElementById('playPauseText').textContent = isPlaying ? 'Pause' : 'Play';
       document.getElementById('pauseIcon').classList.toggle('hidden', !isPlaying);
       document.getElementById('playIcon').classList.toggle('hidden', isPlaying);
-    });
-
-    // Reset
-    document.getElementById('reset').addEventListener('click', () => {
-      this.simulation.reset();
     });
   }
 }

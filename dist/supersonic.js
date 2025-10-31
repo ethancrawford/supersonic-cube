@@ -15,17 +15,19 @@ var ScsynthOSC = class {
     this.initialized = false;
     this.sharedBuffer = null;
     this.ringBufferBase = null;
+    this.bufferConstants = null;
   }
   /**
    * Initialize all workers with SharedArrayBuffer
    */
-  async init(sharedBuffer, ringBufferBase) {
+  async init(sharedBuffer, ringBufferBase, bufferConstants) {
     if (this.initialized) {
       console.warn("[ScsynthOSC] Already initialized");
       return;
     }
     this.sharedBuffer = sharedBuffer;
     this.ringBufferBase = ringBufferBase;
+    this.bufferConstants = bufferConstants;
     try {
       this.workers.oscOut = new Worker("./dist/workers/osc_out_worker.js");
       this.workers.oscIn = new Worker("./dist/workers/osc_in_worker.js");
@@ -70,7 +72,8 @@ var ScsynthOSC = class {
       worker.postMessage({
         type: "init",
         sharedBuffer: this.sharedBuffer,
-        ringBufferBase: this.ringBufferBase
+        ringBufferBase: this.ringBufferBase,
+        bufferConstants: this.bufferConstants
       });
     });
   }
@@ -1072,6 +1075,7 @@ var SuperSonic = class {
     this.capabilities = {};
     this.sharedBuffer = null;
     this.ringBufferBase = null;
+    this.bufferConstants = null;
     this.audioContext = null;
     this.workletNode = null;
     this.osc = null;
@@ -1249,7 +1253,7 @@ var SuperSonic = class {
         this.onError(new Error(`${workerName}: ${error}`));
       }
     });
-    await this.osc.init(this.sharedBuffer, this.ringBufferBase);
+    await this.osc.init(this.sharedBuffer, this.ringBufferBase, this.bufferConstants);
   }
   /**
    * Complete initialization and trigger callbacks
@@ -1326,6 +1330,11 @@ var SuperSonic = class {
               this.ringBufferBase = event.data.ringBufferBase;
             } else {
               console.warn("[SuperSonic] Warning: ringBufferBase not provided by worklet");
+            }
+            if (event.data.bufferConstants !== void 0) {
+              this.bufferConstants = event.data.bufferConstants;
+            } else {
+              console.warn("[SuperSonic] Warning: bufferConstants not provided by worklet");
             }
             resolve();
           } else {
@@ -1504,6 +1513,60 @@ var SuperSonic = class {
     this.sharedBuffer = null;
     this.initialized = false;
     console.log("[SuperSonic] Destroyed");
+  }
+  /**
+   * Load a binary synthdef file and send it to scsynth
+   * @param {string} path - Path or URL to the .scsyndef file
+   * @returns {Promise<void>}
+   * @example
+   * await sonic.loadSynthDef('./etc/synthdefs/sonic-pi-beep.scsyndef');
+   */
+  async loadSynthDef(path) {
+    if (!this.initialized) {
+      throw new Error("SuperSonic not initialized. Call init() first.");
+    }
+    try {
+      const response = await fetch(path);
+      if (!response.ok) {
+        throw new Error(`Failed to load synthdef from ${path}: ${response.status} ${response.statusText}`);
+      }
+      const arrayBuffer = await response.arrayBuffer();
+      const synthdefData = new Uint8Array(arrayBuffer);
+      this.send("/d_recv", synthdefData);
+      console.log(`[SuperSonic] Loaded synthdef from ${path} (${synthdefData.length} bytes)`);
+    } catch (error) {
+      console.error("[SuperSonic] Failed to load synthdef:", error);
+      throw error;
+    }
+  }
+  /**
+   * Load multiple synthdefs from a directory
+   * @param {string[]} names - Array of synthdef names (without .scsyndef extension)
+   * @param {string} baseUrl - Base URL for synthdef files (default: './etc/synthdefs/')
+   * @returns {Promise<Object>} Map of name -> success/error
+   * @example
+   * const results = await sonic.loadSynthDefs(['sonic-pi-beep', 'sonic-pi-tb303']);
+   */
+  async loadSynthDefs(names, baseUrl = "./etc/synthdefs/") {
+    if (!this.initialized) {
+      throw new Error("SuperSonic not initialized. Call init() first.");
+    }
+    const results = {};
+    await Promise.all(
+      names.map(async (name) => {
+        try {
+          const path = `${baseUrl}${name}.scsyndef`;
+          await this.loadSynthDef(path);
+          results[name] = { success: true };
+        } catch (error) {
+          console.error(`[SuperSonic] Failed to load ${name}:`, error);
+          results[name] = { success: false, error: error.message };
+        }
+      })
+    );
+    const successCount = Object.values(results).filter((r) => r.success).length;
+    console.log(`[SuperSonic] Loaded ${successCount}/${names.length} synthdefs`);
+    return results;
   }
 };
 export {

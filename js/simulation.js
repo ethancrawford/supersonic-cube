@@ -206,10 +206,6 @@ class Simulation {
     this.isPlaying = !this.isPlaying;
   }
 
-  reset() {
-    this.createSpheres();
-  }
-
   cleanup() {
     window.removeEventListener('resize', this.handleResize);
     this.spheres.forEach(s => s.cleanup(this.world, this.scene));

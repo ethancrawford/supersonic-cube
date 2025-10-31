@@ -91,7 +91,7 @@ class Sphere {
         : this.config.rootNote + AUDIO_CONSTANTS.REPEL_OCTAVE_OFFSET;
 
     const note = calculateCollisionNote(baseNote, velocity, this.config);
-    const amp = calculateCollisionAmp(velocity);
+    const amp = calculateCollisionAmp(velocity, this.config);
     const pan = this.body.position.x / (this.config.cubeSize / 2);
     const release = hitWall ? AUDIO_CONSTANTS.WALL_RELEASE : AUDIO_CONSTANTS.SPHERE_RELEASE;
     const synth = this.getSynthType(hitWall);
