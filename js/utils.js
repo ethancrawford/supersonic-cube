@@ -55,7 +55,7 @@ function calculateCollisionNote(baseNote, velocity, config) {
 function calculateCollisionAmp(velocity, config) {
   const scaledVelocity = Math.min(velocity / 20, 1);
   return Math.min(
-    (scaledVelocity * config.ampMultiplier),
+    (scaledVelocity * (config.ampMultiplier / 4)),
     AUDIO_CONSTANTS.MAX_AMP
   );
 }
