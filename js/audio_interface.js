@@ -9,7 +9,10 @@ class AudioInterface {
 
     const { SuperSonic } = await import('../dist/supersonic.js');
 
-    this.sonic = new SuperSonic();
+    this.sonic = new SuperSonic({
+      sampleBaseURL: "../dist/etc/samples/",
+      synthdefBaseURL: "../dist/etc/synthdefs/"
+    });
     await this.sonic.init();
 
     await this.sonic.loadSynthDefs(

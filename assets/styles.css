@@ -93,12 +93,12 @@ body {
 }
 
 .control-group {
+    font-size: 0.875rem;
     margin-bottom: 0.75rem;
 }
 
 .control-group label {
     display: block;
-    font-size: 0.875rem;
     margin-bottom: 0.25rem;
 }
 
@@ -220,9 +220,6 @@ body {
 
   .control-group {
     margin-bottom: 1rem;
-  }
-
-  .control-group label {
     font-size: 1rem; /* Larger text for mobile */
   }
 
@@ -276,7 +273,7 @@ body {
     font-size: 0.875rem;
   }
 
-  .control-group label {
+  .control-group {
     font-size: 0.875rem;
   }
 

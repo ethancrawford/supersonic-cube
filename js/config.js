@@ -36,7 +36,7 @@ let config = {
   cubeSize: 20,
   currentScale: 'Pentatonic Major',
   rootNote: 60,
-  ampMultiplier: 0.25
+  ampMultiplier: 1.00
 };
 
 export { SCALES, AUDIO_CONSTANTS, config }
